@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(corepack --version 2>$null)",
+      "PowerShell(npx --version 2>$null)",
+      "WebFetch(domain:jor.myheavenbeauty.com)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://jor.myheavenbeauty.com\" -UserAgent \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -TimeoutSec 30 -ErrorAction Stop; \"STATUS: $\\($r.StatusCode\\)\"; \"LENGTH: $\\($r.Content.Length\\)\" } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://jor.myheavenbeauty.com\" -UseBasicParsing -UserAgent \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/120.0 Safari/537.36\" -TimeoutSec 30 -ErrorAction Stop; \"STATUS: $\\($r.StatusCode\\)\"; \"LENGTH: $\\($r.Content.Length\\)\" } catch { \"ERROR: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(corepack enable pnpm 2>&1)",
+      "PowerShell(corepack prepare pnpm@9.15.0 --activate 2>&1)",
+      "PowerShell(pnpm -v)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 -v 2>&1 | Select-Object -Last 5)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 install 2>&1 | Select-Object -Last 25)",
+      "Bash(node -e ' *)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 exec tsc --noEmit 2>&1 | Select-Object -First 60)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 build 2>&1 | Select-Object -Last 70)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 lint 2>&1 | Select-Object -Last 40)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 lint 2>&1 | Select-Object -Last 30)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 build 2>&1 | Select-Object -Last 18)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 start 2>&1 | Out-File \"$env:TEMP\\\\hb-start.log\")",
+      "PowerShell(Remove-Item -Force .\\\\components\\\\site\\\\shop-grid.tsx; $env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 build 2>&1 | Select-Object -Last 8)",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 start 2>&1 | Out-File \"$env:TEMP\\\\hb-start2.log\")"
+    ]
+  }
+}

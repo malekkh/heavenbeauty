@@ -1,0 +1,6 @@
+# Minimal Supabase CLI config so `supabase link` / `supabase db push` work.
+# Replace project_id via `supabase link --project-ref <your-ref>`.
+project_id = "heaven-beauty"
+
+[db]
+major_version = 15
