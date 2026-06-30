@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ExternalLink, LogOut } from "lucide-react";
 import { AdminNav } from "./admin-nav";
 import { signOut } from "@/app/admin/actions";
@@ -14,11 +15,14 @@ export function AdminShell({
   return (
     <div className="mx-auto flex min-h-screen max-w-7xl">
       <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-surface p-4 md:flex">
-        <Link
-          href="/admin"
-          className="px-3 py-2 font-display text-xl font-semibold"
-        >
-          Heaven Beauty
+        <Link href="/admin" className="px-3 py-2" aria-label="Heaven Beauty admin">
+          <Image
+            src="/logo.png"
+            alt="Heaven Beauty"
+            width={150}
+            height={40}
+            className="h-8 w-auto"
+          />
         </Link>
         <p className="mb-6 px-3 text-xs text-muted">Admin</p>
         <AdminNav />
@@ -47,8 +51,14 @@ export function AdminShell({
       <div className="flex-1">
         {/* Mobile top bar */}
         <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 md:hidden">
-          <Link href="/admin" className="font-display text-lg font-semibold">
-            Heaven Beauty
+          <Link href="/admin" aria-label="Heaven Beauty admin">
+            <Image
+              src="/logo.png"
+              alt="Heaven Beauty"
+              width={130}
+              height={35}
+              className="h-7 w-auto"
+            />
           </Link>
           <form action={signOut}>
             <button type="submit" aria-label="Sign out">

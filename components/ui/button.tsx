@@ -8,7 +8,9 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        brand: "bg-brand text-brand-foreground hover:bg-brand/90",
+        // Signature brand button: black fill, cream text → orange on hover.
+        brand:
+          "bg-ink text-ink-foreground hover:bg-brand hover:text-brand-foreground",
         default:
           "bg-foreground text-background hover:bg-foreground/90",
         outline:

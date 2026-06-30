@@ -23,7 +23,10 @@
       "PowerShell(git remote remove origin 2>&1)",
       "PowerShell(\"---\")",
       "PowerShell(\"removed bad origin \\(if any\\)\")",
-      "PowerShell(\"\\(empty above = no remotes now\\)\")"
+      "PowerShell(\"\\(empty above = no remotes now\\)\")",
+      "PowerShell($env:COREPACK_HOME = \"$env:LOCALAPPDATA\\\\corepack\"; corepack pnpm@9.15.0 dev 2>&1 | Out-File \"$env:TEMP\\\\hb-dev.log\")",
+      "PowerShell(Move-Item -Force \"c:\\\\Users\\\\MalekAbdelsalamKhode\\\\Desktop\\\\heavenbeauty\\\\public\\\\hero\\\\logo.png\" \"c:\\\\Users\\\\MalekAbdelsalamKhode\\\\Desktop\\\\heavenbeauty\\\\public\\\\logo.png\")",
+      "PowerShell(\"moved to /public/logo.png\")"
     ]
   }
 }

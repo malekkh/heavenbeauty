@@ -1,19 +1,22 @@
 @import "tailwindcss";
 
 /*
-  Heaven Beauty design tokens — a light refresh of the live store.
-  Accent orange (#ff6a00) and a warm off-white (#f5f3f1) come straight
-  from the reference site; spacing/typography are cleaned up.
+  Heaven Beauty design tokens. Cream background and black primary actions from
+  the original store; the accent is the brand blue taken from the logo
+  (logo wordmark ≈ #A8C8E8). --brand is a deeper, legible periwinkle in that
+  same family for buttons/links/badges; --accent-soft is a light logo-blue tint.
 */
 :root {
-  --background: #f7f5f2;
-  --surface: #ffffff;
-  --foreground: #181410;
-  --muted: #6b635a;
-  --border: #e7e1d8;
-  --brand: #ff6a00;
+  --background: #f5f3f1; /* cream — body background */
+  --surface: #ffffff; /* cards */
+  --foreground: #111111; /* near-black text */
+  --ink: #000000; /* primary button fill (brand black) */
+  --ink-foreground: #f5f3f1; /* primary button text (cream) */
+  --muted: #6b6f78;
+  --border: #e2e3e7;
+  --brand: #4f7cc1; /* logo-family periwinkle — hover + accent */
   --brand-foreground: #ffffff;
-  --accent-soft: #fbe9dc;
+  --accent-soft: #e8eef8; /* light logo-blue tint for soft surfaces */
   --whatsapp: #25d366;
   --radius: 0.9rem;
 }
@@ -26,6 +29,8 @@
   --color-border: var(--border);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-ink: var(--ink);
+  --color-ink-foreground: var(--ink-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-whatsapp: var(--whatsapp);
 

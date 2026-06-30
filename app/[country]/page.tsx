@@ -4,7 +4,8 @@ import { ArrowRight, Heart, Leaf, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Marquee } from "@/components/site/marquee";
 import { ProductCarousel } from "@/components/site/product-carousel";
-import { MARQUEE_ROWS } from "@/lib/site-config";
+import { HeroSlider } from "@/components/site/hero-slider";
+import { HERO_SLIDES, MARQUEE_ROWS } from "@/lib/site-config";
 import {
   getCatalogByCategory,
   getCatalogProducts,
@@ -25,6 +26,11 @@ export default async function HomePage({
 
   const pure =
     catalog.find((p) => p.slug === "heavenly-tint-pure") ?? catalog[0];
+
+  // Campaign photos reused in the statement + Our Story sections, mirroring
+  // how the live site features the model imagery there.
+  const glowImage = HERO_SLIDES[1] ?? HERO_SLIDES[0];
+  const storyImage = HERO_SLIDES[0] ?? HERO_SLIDES[1];
 
   return (
     <>
@@ -55,19 +61,8 @@ export default async function HomePage({
           </div>
 
           <div className="relative">
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-accent-soft">
-              {pure?.images[0]?.url ? (
-                <Image
-                  src={pure.images[0].url}
-                  alt={pure.name}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 28rem, 90vw"
-                  className="object-cover"
-                />
-              ) : null}
-            </div>
-            <div className="absolute -bottom-4 -left-2 hidden rounded-xl border border-border bg-surface px-5 py-3 shadow-lg sm:block">
+            <HeroSlider slides={HERO_SLIDES} />
+            <div className="absolute -bottom-4 -left-2 z-10 hidden rounded-xl border border-border bg-surface px-5 py-3 shadow-lg sm:block">
               <p className="font-display text-lg">Your glow speaks</p>
               <p className="text-sm text-muted">we simply enhance it.</p>
             </div>
@@ -92,9 +87,20 @@ export default async function HomePage({
       </div>
 
       {/* Glow statement */}
-      <section className="bg-foreground py-20 text-background">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <p className="font-display text-3xl leading-snug sm:text-4xl">
+      <section className="bg-foreground text-background">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 lg:grid-cols-2">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/15 bg-white/5">
+            {glowImage ? (
+              <Image
+                src={glowImage.src}
+                alt={glowImage.alt}
+                fill
+                sizes="(min-width: 1024px) 32rem, 90vw"
+                className="object-cover"
+              />
+            ) : null}
+          </div>
+          <p className="font-display text-3xl leading-snug sm:text-4xl lg:text-5xl">
             Your glow speaks for itself — we simply enhance it.
           </p>
         </div>
@@ -136,21 +142,34 @@ export default async function HomePage({
       ) : null}
 
       {/* Our Story teaser */}
-      <section className="border-y border-border bg-surface py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <span className="text-sm font-medium uppercase tracking-[0.2em] text-brand">
-            Our Story
-          </span>
-          <p className="mt-4 font-display text-2xl leading-relaxed sm:text-3xl">
-            Heaven Beauty was created to redefine beauty as something
-            effortless — crafted to enhance your natural radiance, never mask
-            it.
-          </p>
-          <Button asChild variant="link" className="mt-4">
-            <Link href={`/${country}/our-story`}>
-              Read our story <ArrowRight className="size-4" />
-            </Link>
-          </Button>
+      <section className="border-y border-border bg-surface">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 lg:grid-cols-2">
+          <div className="flex flex-col items-start gap-4">
+            <span className="text-sm font-medium uppercase tracking-[0.2em] text-brand">
+              Our Story
+            </span>
+            <p className="font-display text-2xl leading-relaxed sm:text-3xl">
+              Heaven Beauty was created to redefine beauty as something
+              effortless — crafted to enhance your natural radiance, never mask
+              it.
+            </p>
+            <Button asChild variant="link" className="px-0">
+              <Link href={`/${country}/our-story`}>
+                Read our story <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+          </div>
+          <div className="relative order-first aspect-[4/5] overflow-hidden rounded-2xl border border-border bg-accent-soft lg:order-last">
+            {storyImage ? (
+              <Image
+                src={storyImage.src}
+                alt={storyImage.alt}
+                fill
+                sizes="(min-width: 1024px) 32rem, 90vw"
+                className="object-cover"
+              />
+            ) : null}
+          </div>
         </div>
       </section>
 

@@ -10,6 +10,17 @@ export const SITE = {
   tagline: "Where Tint Meets Radiance",
 };
 
+/**
+ * Hero slider images (the campaign / model photos). Drop your photos into
+ * `public/hero/` and list them here in order. Portrait orientation (~4:5)
+ * looks best. Replace the placeholders with .jpg/.webp as you receive them —
+ * just update the `src` paths below.
+ */
+export const HERO_SLIDES: { src: string; alt: string }[] = [
+  { src: "/hero/hero-1.jpg", alt: "Heaven Beauty model wearing the tints" },
+  { src: "/hero/hero-2.jpg", alt: "Heaven Beauty campaign portrait" },
+];
+
 /** Marquee ticker rows on the home page (light refresh of the live strips). */
 export const MARQUEE_ROWS: string[][] = [
   ["For a natural glow", "It's organic", "Cruelty free", "Vegan & conscious"],

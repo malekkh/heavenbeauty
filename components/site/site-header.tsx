@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Country } from "@/lib/types";
 import { CartSheet } from "./cart-sheet";
 import { CountrySwitcher } from "./country-switcher";
@@ -30,11 +31,15 @@ export function SiteHeader({
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <div className="flex items-center gap-2">
           <MobileNav links={links} />
-          <Link
-            href={base}
-            className="font-display text-xl font-semibold tracking-tight sm:text-2xl"
-          >
-            Heaven Beauty
+          <Link href={base} aria-label="Heaven Beauty home">
+            <Image
+              src="/logo.png"
+              alt="Heaven Beauty"
+              width={160}
+              height={43}
+              priority
+              className="h-8 w-auto sm:h-9"
+            />
           </Link>
         </div>
 
