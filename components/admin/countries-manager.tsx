@@ -27,6 +27,7 @@ function CountryCard({ country }: { country: Country }) {
     currency_code: country.currency_code,
     currency_symbol: country.currency_symbol,
     whatsapp_number: country.whatsapp_number,
+    owner_email: country.owner_email ?? "",
     is_active: country.is_active,
   });
   const [pending, startTransition] = useTransition();
@@ -78,6 +79,14 @@ function CountryCard({ country }: { country: Country }) {
             value={form.whatsapp_number}
             onChange={(e) => set("whatsapp_number", e.target.value)}
             placeholder="96178835078"
+          />
+        </Field>
+        <Field label="Owner order email">
+          <Input
+            type="email"
+            value={form.owner_email ?? ""}
+            onChange={(e) => set("owner_email", e.target.value)}
+            placeholder="orders@myheavenbeauty.com"
           />
         </Field>
         <div className="flex items-end justify-between gap-4">

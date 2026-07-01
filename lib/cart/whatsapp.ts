@@ -7,18 +7,37 @@ interface WhatsAppArgs {
   whatsappNumber: string;
   /** Currency formatting overrides from the DB country row, if available. */
   currencySymbol?: string;
+  /**
+   * When set, the message references an order already saved on-site (its short
+   * reference) and echoes the details the customer submitted, rather than
+   * prompting them to type name/address into the chat.
+   */
+  orderRef?: string;
+  customer?: {
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+  };
 }
 
 /**
- * Build a pre-filled WhatsApp checkout link for the current country's number.
- * Lists each line item, the total, and prompts the customer for name/address.
- * No order is persisted server-side — checkout happens entirely over chat.
+ * Build a pre-filled WhatsApp link for the current country's number.
+ *
+ * Two shapes:
+ *  - Legacy handoff (no `orderRef`): lists items + total and prompts the
+ *    customer for their details in chat. No order is persisted.
+ *  - Post-checkout confirmation (`orderRef` + `customer` set): references the
+ *    order already saved on-site and echoes the submitted details, so the
+ *    owner can confirm delivery quickly.
  */
 export function buildWhatsAppUrl({
   items,
   countryCode,
   whatsappNumber,
   currencySymbol,
+  orderRef,
+  customer,
 }: WhatsAppArgs): string {
   const fmt = (n: number) =>
     formatMoney(n, countryCode, currencySymbol ? { symbol: currencySymbol } : undefined);
@@ -28,18 +47,32 @@ export function buildWhatsAppUrl({
   );
   const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-  const message = [
-    "Hi Heaven Beauty! I'd like to place an order:",
-    "",
-    ...lines,
-    "",
-    `Total: ${fmt(total)}`,
-    "",
-    "My details —",
-    "Name:",
-    "Delivery address:",
-    "Phone:",
-  ].join("\n");
+  const message =
+    orderRef && customer
+      ? [
+          `Hi Heaven Beauty! I just placed order ${orderRef}:`,
+          "",
+          ...lines,
+          "",
+          `Total: ${fmt(total)}`,
+          "",
+          "My details —",
+          `Name: ${customer.name}`,
+          `Delivery address: ${customer.address}, ${customer.city}`,
+          `Phone: ${customer.phone}`,
+        ].join("\n")
+      : [
+          "Hi Heaven Beauty! I'd like to place an order:",
+          "",
+          ...lines,
+          "",
+          `Total: ${fmt(total)}`,
+          "",
+          "My details —",
+          "Name:",
+          "Delivery address:",
+          "Phone:",
+        ].join("\n");
 
   const digits = whatsappNumber.replace(/[^\d]/g, "");
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;

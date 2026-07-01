@@ -4,7 +4,8 @@ A multi-country beauty storefront with WhatsApp checkout and a password-protecte
 admin dashboard. Built with **Next.js 16 (App Router) · TypeScript · Tailwind v4 ·
 Supabase · Zustand**, deployed on Vercel.
 
-- **No customer accounts.** Visitors browse and check out over WhatsApp.
+- **No customer accounts, no payments.** Visitors browse, fill a short details
+  form to place an order on-site, then continue on WhatsApp to confirm delivery.
 - **Admin-only auth.** The owner signs in to manage the catalog.
 - **Per-country catalog.** Jordan, Lebanon, UAE and Egypt each get their own
   products, prices and currency, selected by IP with a manual switcher.
@@ -60,9 +61,42 @@ Copy [`.env.example`](.env.example) to `.env.local`:
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (RLS-guarded) |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Server only.** Used by the seed script |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only.** Seed script + saving orders at checkout |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for metadata |
 | `MOCK_COUNTRY` | Optional. Forces a country in local dev (geo is empty locally) |
+| `RESEND_API_KEY` | **Server only.** Order emails (owner + customer) via Resend |
+| `RESEND_FROM` | Optional. Verified sender for order emails |
+| `CALLMEBOT_API_KEY` | **Server only.** Owner WhatsApp alert via CallMeBot |
+
+All three checkout secrets are **server-only** — never prefix them with
+`NEXT_PUBLIC_`.
+
+---
+
+## Checkout & notifications
+
+Checkout is on-site (no accounts, no payments):
+
+1. The customer opens **`/[country]/checkout`** from the cart, fills in name,
+   phone, email, address, city and optional notes, and clicks **Place order**.
+2. The **`placeOrder`** server action ([`app/[country]/checkout/actions.ts`](app/[country]/checkout/actions.ts))
+   validates with zod, re-prices the cart against the DB, and **saves the order
+   with the service-role client** — this is the source of truth and the only
+   step that can fail the request.
+3. It then fires three notifications, **each isolated** so one failing never
+   loses the order or blocks the others, recording each outcome in the order's
+   `notify_status`:
+   - **Owner WhatsApp** (CallMeBot) — a short text summary.
+   - **Owner email** (Resend) — the full order for fulfilment, sent to the
+     country's **Owner order email** (set in the admin → Countries).
+   - **Customer email** (Resend) — a branded confirmation.
+4. The success screen shows the order reference and a **Continue on WhatsApp**
+   button (pre-filled to the country's number), then clears the cart.
+
+> **Before production:** verify your sending domain in **Resend** (SPF + DKIM)
+> and set `RESEND_FROM` to an address on that domain, otherwise emails are
+> rejected. Register the owner's number with **CallMeBot** to get the API key.
+> Set each country's **Owner order email** and **WhatsApp number** in the admin.
 
 ---
 
@@ -114,6 +148,7 @@ app/
     page.tsx          Home
     shop/             Catalog grid + category filter
     product/[slug]/   Product detail
+    checkout/         Details form + placeOrder server action
     our-story · faq · return-cancellations · privacy-policy
   admin/            Auth-gated dashboard (not country-scoped)
     login/            Owner sign-in
@@ -121,13 +156,16 @@ app/
     actions.ts        Server actions + on-demand revalidation
 components/
   ui/               shadcn-style primitives
-  site/             Storefront components (header, cart, switcher, …)
+  site/             Storefront components (header, cart, checkout, switcher, …)
   admin/            Admin components
+emails/             React Email templates (order owner + customer)
 lib/
   countries.ts      Supported countries (source of truth)
   supabase/         Browser / server / admin / public clients
   data/             Queries, seed data, cache tags
-  cart/             Zustand store + WhatsApp checkout
+  cart/             Zustand store + WhatsApp link builder
+  checkout/         Zod schema shared by the form and the server action
+  notifications/    CallMeBot + Resend clients
 proxy.ts            Geo detection + country redirect (Next 16 middleware)
 supabase/migrations Schema, RLS, storage policies
 scripts/seed.ts     Catalog seed

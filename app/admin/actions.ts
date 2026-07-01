@@ -164,6 +164,7 @@ export interface CountryInput {
   currency_code: string;
   currency_symbol: string;
   whatsapp_number: string;
+  owner_email: string | null;
   is_active: boolean;
 }
 
@@ -176,6 +177,7 @@ export async function saveCountry(input: CountryInput) {
       currency_code: input.currency_code,
       currency_symbol: input.currency_symbol,
       whatsapp_number: input.whatsapp_number,
+      owner_email: input.owner_email ? input.owner_email.trim() : null,
       is_active: input.is_active,
     })
     .eq("code", input.code);

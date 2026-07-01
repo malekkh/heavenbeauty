@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -12,14 +14,14 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, selectCount, selectSubtotal } from "@/lib/cart/store";
-import { buildWhatsAppUrl } from "@/lib/cart/whatsapp";
 import { formatMoney } from "@/lib/utils";
 import type { Country } from "@/lib/types";
 
 /**
  * Cart trigger (with live count) + slide-over drawer. Reads the persisted
- * Zustand cart; checkout opens a pre-filled WhatsApp chat to the active
- * country's number. Hydration-safe: the count only renders post-rehydrate.
+ * Zustand cart; checkout routes to the on-site details form (which saves the
+ * order and notifies, then offers the WhatsApp handoff). Hydration-safe: the
+ * count only renders post-rehydrate.
  */
 export function CartSheet({ country }: { country: Country }) {
   const hasHydrated = useCart((s) => s.hasHydrated);
@@ -28,16 +30,6 @@ export function CartSheet({ country }: { country: Country }) {
   const subtotal = useCart(selectSubtotal);
   const updateQty = useCart((s) => s.updateQty);
   const removeItem = useCart((s) => s.removeItem);
-
-  const checkoutUrl =
-    items.length > 0
-      ? buildWhatsAppUrl({
-          items,
-          countryCode: country.code,
-          whatsappNumber: country.whatsapp_number,
-          currencySymbol: country.currency_symbol,
-        })
-      : "#";
 
   return (
     <Sheet>
@@ -140,13 +132,13 @@ export function CartSheet({ country }: { country: Country }) {
                 {formatMoney(subtotal, country.code)}
               </span>
             </div>
-            <Button asChild variant="whatsapp" size="lg" className="w-full">
-              <a href={checkoutUrl} target="_blank" rel="noopener noreferrer">
-                Checkout on WhatsApp
-              </a>
-            </Button>
+            <SheetClose asChild>
+              <Button asChild variant="brand" size="lg" className="w-full">
+                <Link href={`/${country.code}/checkout`}>Checkout</Link>
+              </Button>
+            </SheetClose>
             <p className="text-center text-xs text-muted">
-              You&apos;ll confirm your order and delivery details over chat.
+              Add your details next — we&apos;ll confirm delivery on WhatsApp.
             </p>
           </SheetFooter>
         ) : null}

@@ -9,6 +9,12 @@ export interface Country {
   is_default: boolean;
   is_active: boolean;
   sort_order: number;
+  /**
+   * Fulfilment email for owner order notifications. Server/admin only — never
+   * selected by the public (anon) catalog queries, so it never reaches the
+   * storefront browser bundle.
+   */
+  owner_email?: string | null;
 }
 
 export interface Category {
@@ -68,4 +74,51 @@ export interface AdminProduct extends Product {
   category: Pick<Category, "id" | "slug" | "name"> | null;
   images: ProductImage[];
   pricing: ProductCountry[];
+}
+
+/* ------------------------------------------------------------------ *
+ * Orders (on-site checkout)
+ * ------------------------------------------------------------------ */
+
+/** A single line item as stored in `orders.items` (jsonb). */
+export interface OrderItem {
+  productId: string;
+  slug: string;
+  name: string;
+  qty: number;
+  /** Unit price in the order's currency at time of purchase. */
+  price: number;
+}
+
+/** Outcome of one notification channel, recorded in `orders.notify_status`. */
+export interface NotifyOutcome {
+  status: "sent" | "failed" | "skipped";
+  /** Provider id (e.g. Resend message id) when available. */
+  id?: string;
+  error?: string;
+  at: string;
+}
+
+/** Per-channel notification results for an order. */
+export interface NotifyStatus {
+  owner_whatsapp?: NotifyOutcome;
+  owner_email?: NotifyOutcome;
+  customer_email?: NotifyOutcome;
+}
+
+export interface Order {
+  id: string;
+  created_at: string;
+  country_code: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string;
+  address: string;
+  city: string;
+  notes: string | null;
+  items: OrderItem[];
+  subtotal: number;
+  currency: string;
+  status: string;
+  notify_status: NotifyStatus | null;
 }
