@@ -17,8 +17,22 @@ export const SITE = {
  * just update the `src` paths below.
  */
 export const HERO_SLIDES: { src: string; alt: string }[] = [
-  { src: "/hero/hero-1.jpg", alt: "Heaven Beauty model wearing the tints" },
-  { src: "/hero/hero-2.jpg", alt: "Heaven Beauty campaign portrait" },
+  {
+    src: "/hero/IMG_2386.JPG-scaled.jpeg",
+    alt: "Heaven Beauty model wearing the tints",
+  },
+  {
+    src: "/hero/IMG_2398.JPG-scaled.jpeg",
+    alt: "Heaven Beauty campaign portrait",
+  },
+  {
+    src: "/hero/IMG_5185.JPG-1-1-1-1-1-1-1-scaled.webp",
+    alt: "Heaven Beauty tints on the skin",
+  },
+  {
+    src: "/hero/heavenbeauty.lb_1762448458_3760012651565741825_65902285909.jpg",
+    alt: "Heaven Beauty campaign look",
+  },
 ];
 
 /** Marquee ticker rows on the home page (light refresh of the live strips). */
