@@ -109,13 +109,25 @@ export async function placeOrder(
   const ref = orderId.slice(0, 8).toUpperCase();
   const fmt = (n: number) => formatMoney(n, data.country_code);
 
-  // 5a. Owner WhatsApp (CallMeBot), text-only summary.
+  // 5a. Owner WhatsApp (CallMeBot) — text-only, but with the full order
+  //     details, mirroring the owner email.
   notify.owner_whatsapp = await run(async () => {
+    const itemLines = items.map(
+      (i) => `- ${i.name} x ${i.qty} = ${fmt(i.price * i.qty)}`
+    );
     const text = [
-      `New order ${ref}`,
-      `Name: ${data.customer_name}`,
+      `New order ${ref} (${data.country_code.toUpperCase()})`,
+      ``,
+      `Customer:`,
+      `${data.customer_name}`,
       `Phone: ${data.customer_phone}`,
-      `City: ${data.city}`,
+      `Email: ${data.customer_email}`,
+      `Address: ${data.address}, ${data.city}`,
+      ...(data.notes ? [`Notes: ${data.notes}`] : []),
+      ``,
+      `Items:`,
+      ...itemLines,
+      ``,
       `Total: ${fmt(subtotal)}`,
       `Order id: ${orderId}`,
     ].join("\n");
