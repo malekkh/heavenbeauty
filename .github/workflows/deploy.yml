@@ -34,7 +34,7 @@ jobs:
       - run: pnpm typecheck
 
       - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
+        run: npm install -g vercel@latest
 
       # ---- Preview (pull requests) ----
       - name: Deploy Preview
