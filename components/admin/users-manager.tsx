@@ -124,7 +124,7 @@ export function UsersManager({
         </div>
         <p className="mt-3 text-xs text-muted">
           The new admin signs in at <code>/admin</code> with this email and
-          password, and can change it later in Supabase. They get full
+          password, They get full
           dashboard access.
         </p>
       </form>
