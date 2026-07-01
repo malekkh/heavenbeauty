@@ -1,30 +1,22 @@
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type {
-  CatalogProduct,
-  Category,
-  Country,
-} from "@/lib/types";
+import type { CatalogProduct, Category, Country } from "@/lib/types";
 import { REVALIDATE_SECONDS, TAGS } from "./tags";
-import {
-  SEED_CATEGORIES,
-  SEED_COUNTRIES,
-  SEED_PRODUCTS,
-  SEED_PRODUCT_COUNTRY,
-  SEED_PRODUCT_IMAGES,
-} from "./seed-data";
+
+/*
+ * Public catalog reads — always from Supabase. Reads are wrapped in
+ * `unstable_cache` (ISR) and invalidated on demand by the admin. When the
+ * env isn't configured (e.g. a build with no secrets) these return empty
+ * rather than crashing; wire up the env vars to get real data.
+ */
 
 /* ------------------------------------------------------------------ *
  * Countries
  * ------------------------------------------------------------------ */
 
 export async function getActiveCountries(): Promise<Country[]> {
-  if (!isSupabaseConfigured()) {
-    return SEED_COUNTRIES.filter((c) => c.is_active).sort(
-      (a, b) => a.sort_order - b.sort_order
-    );
-  }
+  if (!isSupabaseConfigured()) return [];
   return getActiveCountriesCached();
 }
 
@@ -57,11 +49,7 @@ export async function getCountryByCode(
  * ------------------------------------------------------------------ */
 
 export async function getCategories(): Promise<Category[]> {
-  if (!isSupabaseConfigured()) {
-    return SEED_CATEGORIES.filter((c) => c.is_active).sort(
-      (a, b) => a.sort_order - b.sort_order
-    );
-  }
+  if (!isSupabaseConfigured()) return [];
   return getCategoriesCached();
 }
 
@@ -83,45 +71,6 @@ const getCategoriesCached = unstable_cache(
 /* ------------------------------------------------------------------ *
  * Catalog (per-country products)
  * ------------------------------------------------------------------ */
-
-/** Build the seed catalog for a country from the bundled rows. */
-function seedCatalog(country: string): CatalogProduct[] {
-  const code = country.toLowerCase();
-  const categoriesById = new Map(SEED_CATEGORIES.map((c) => [c.id, c]));
-  return SEED_PRODUCT_COUNTRY.filter(
-    (pc) => pc.country_code === code && pc.is_available
-  )
-    .map((pc) => {
-      const product = SEED_PRODUCTS.find(
-        (p) => p.id === pc.product_id && p.is_active
-      );
-      if (!product) return null;
-      const cat = product.category_id
-        ? categoriesById.get(product.category_id)
-        : undefined;
-      const images = SEED_PRODUCT_IMAGES.filter(
-        (img) => img.product_id === product.id
-      )
-        .sort((a, b) => a.sort_order - b.sort_order)
-        .map((img) => ({ url: img.url, alt: img.alt }));
-      const item: CatalogProduct = {
-        id: product.id,
-        slug: product.slug,
-        name: product.name,
-        description: product.description,
-        category: cat
-          ? { id: cat.id, slug: cat.slug, name: cat.name }
-          : null,
-        images,
-        price: pc.price,
-        is_available: pc.is_available,
-        sort_order: product.sort_order,
-      };
-      return item;
-    })
-    .filter((x): x is CatalogProduct => x !== null)
-    .sort((a, b) => a.sort_order - b.sort_order);
-}
 
 type RawCatalogRow = {
   id: string;
@@ -165,12 +114,7 @@ export async function getCatalogProducts(opts: {
   categorySlug?: string;
 }): Promise<CatalogProduct[]> {
   const country = opts.country.toLowerCase();
-  if (!isSupabaseConfigured()) {
-    const all = seedCatalog(country);
-    return opts.categorySlug
-      ? all.filter((p) => p.category?.slug === opts.categorySlug)
-      : all;
-  }
+  if (!isSupabaseConfigured()) return [];
   const products = await getCatalogProductsCached(country);
   return opts.categorySlug
     ? products.filter((p) => p.category?.slug === opts.categorySlug)
@@ -201,9 +145,7 @@ export async function getCatalogProductBySlug(opts: {
   slug: string;
 }): Promise<CatalogProduct | null> {
   const country = opts.country.toLowerCase();
-  if (!isSupabaseConfigured()) {
-    return seedCatalog(country).find((p) => p.slug === opts.slug) ?? null;
-  }
+  if (!isSupabaseConfigured()) return null;
   const supabase = createPublicClient();
   const { data, error } = await supabase
     .from("products")

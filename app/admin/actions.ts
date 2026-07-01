@@ -3,7 +3,8 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { hasServiceRole, isSupabaseConfigured } from "@/lib/supabase/config";
 import { SUPPORTED_COUNTRY_CODES } from "@/lib/countries";
 import { TAGS } from "@/lib/data/tags";
 import type { ProductCountry, ProductImage } from "@/lib/types";
@@ -20,7 +21,18 @@ async function requireAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated.");
-  return supabase;
+
+  // Require an admin profile. RLS also enforces this; checking here gives a
+  // clear error. If the profiles table isn't present yet, allow (legacy).
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!error && profile && profile.is_admin !== true) {
+    throw new Error("Your account isn't an admin.");
+  }
+  return { supabase, user };
 }
 
 /**
@@ -56,7 +68,7 @@ export interface ProductInput {
 }
 
 export async function saveProduct(input: ProductInput) {
-  const supabase = await requireAdmin();
+  const { supabase } = await requireAdmin();
 
   // 1. Upsert the product row.
   const productRow = {
@@ -112,7 +124,7 @@ export async function saveProduct(input: ProductInput) {
 }
 
 export async function deleteProduct(id: string, slug?: string) {
-  const supabase = await requireAdmin();
+  const { supabase } = await requireAdmin();
   const { error } = await supabase.from("products").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidateCatalog(slug);
@@ -127,7 +139,7 @@ export interface CategoryInput {
 }
 
 export async function saveCategory(input: CategoryInput) {
-  const supabase = await requireAdmin();
+  const { supabase } = await requireAdmin();
   const { error } = await supabase.from("categories").upsert({
     ...(input.id ? { id: input.id } : {}),
     slug: input.slug,
@@ -140,7 +152,7 @@ export async function saveCategory(input: CategoryInput) {
 }
 
 export async function deleteCategory(id: string) {
-  const supabase = await requireAdmin();
+  const { supabase } = await requireAdmin();
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) throw new Error(error.message);
   revalidateCatalog();
@@ -156,7 +168,7 @@ export interface CountryInput {
 }
 
 export async function saveCountry(input: CountryInput) {
-  const supabase = await requireAdmin();
+  const { supabase } = await requireAdmin();
   const { error } = await supabase
     .from("countries")
     .update({
@@ -177,4 +189,96 @@ export async function signOut() {
     await supabase.auth.signOut();
   }
   redirect("/admin/login");
+}
+
+/* ------------------------------------------------------------------ *
+ * Admin user management
+ *
+ * Existing admins can add / invite new admins and toggle access. All of
+ * these first verify the caller is an admin, then use the service-role
+ * client for the privileged auth operations.
+ * ------------------------------------------------------------------ */
+
+function ensureServiceRole() {
+  if (!hasServiceRole()) {
+    throw new Error(
+      "User management needs SUPABASE_SERVICE_ROLE_KEY set on the server."
+    );
+  }
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Create a new user with a password and grant them admin access. */
+export async function createAdminUser(email: string, password: string) {
+  await requireAdmin();
+  ensureServiceRole();
+  const cleanEmail = email.trim().toLowerCase();
+  if (!EMAIL_RE.test(cleanEmail)) throw new Error("Enter a valid email.");
+  if (password.length < 8) {
+    throw new Error("Password must be at least 8 characters.");
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.createUser({
+    email: cleanEmail,
+    password,
+    email_confirm: true,
+  });
+  if (error) throw new Error(error.message);
+
+  const { error: profileError } = await admin
+    .from("profiles")
+    .upsert({ id: data.user.id, email: cleanEmail, is_admin: true });
+  if (profileError) throw new Error(profileError.message);
+
+  revalidatePath("/admin/users");
+}
+
+/** Invite a new admin by email (requires SMTP configured in Supabase). */
+export async function inviteAdminUser(email: string) {
+  await requireAdmin();
+  ensureServiceRole();
+  const cleanEmail = email.trim().toLowerCase();
+  if (!EMAIL_RE.test(cleanEmail)) throw new Error("Enter a valid email.");
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(cleanEmail);
+  if (error) throw new Error(error.message);
+
+  const { error: profileError } = await admin
+    .from("profiles")
+    .upsert({ id: data.user.id, email: cleanEmail, is_admin: true });
+  if (profileError) throw new Error(profileError.message);
+
+  revalidatePath("/admin/users");
+}
+
+/** Grant or revoke admin access for an existing user. */
+export async function setUserAdmin(userId: string, isAdmin: boolean) {
+  const { user } = await requireAdmin();
+  ensureServiceRole();
+  if (userId === user.id && !isAdmin) {
+    throw new Error("You can't remove your own admin access.");
+  }
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("profiles")
+    .update({ is_admin: isAdmin })
+    .eq("id", userId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/users");
+}
+
+/** Delete a user entirely (removes their login + profile). */
+export async function deleteUser(userId: string) {
+  const { user } = await requireAdmin();
+  ensureServiceRole();
+  if (userId === user.id) {
+    throw new Error("You can't delete your own account.");
+  }
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/users");
 }

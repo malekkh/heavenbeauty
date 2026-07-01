@@ -1,25 +1,13 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import type {
-  AdminProduct,
-  Category,
-  Country,
-  ProductCountry,
-} from "@/lib/types";
-import {
-  SEED_CATEGORIES,
-  SEED_COUNTRIES,
-  SEED_PRODUCTS,
-  SEED_PRODUCT_COUNTRY,
-  SEED_PRODUCT_IMAGES,
-} from "./seed-data";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isSupabaseConfigured, hasServiceRole } from "@/lib/supabase/config";
+import type { AdminProduct, Category, Country } from "@/lib/types";
 
 /**
- * Admin reads — full rows (including inactive/unavailable), unlike the public
- * queries. Uses the authenticated server client so RLS grants full access.
- * Falls back to bundled seed data when Supabase isn't configured so the admin
- * UI renders (read-only) for preview/build.
+ * Admin reads — full rows (including inactive/unavailable), from Supabase only.
+ * Uses the authenticated server client so RLS grants full access. No seed
+ * fallback: the store is entirely database-driven.
  */
 
 const ADMIN_PRODUCT_SELECT = `
@@ -30,25 +18,8 @@ const ADMIN_PRODUCT_SELECT = `
   pricing:product_country(product_id, country_code, price, is_available)
 `;
 
-function seedAdminProducts(): AdminProduct[] {
-  const categoriesById = new Map(SEED_CATEGORIES.map((c) => [c.id, c]));
-  return SEED_PRODUCTS.map((p) => {
-    const cat = p.category_id ? categoriesById.get(p.category_id) : undefined;
-    return {
-      ...p,
-      category: cat
-        ? { id: cat.id, slug: cat.slug, name: cat.name }
-        : null,
-      images: SEED_PRODUCT_IMAGES.filter((i) => i.product_id === p.id).sort(
-        (a, b) => a.sort_order - b.sort_order
-      ),
-      pricing: SEED_PRODUCT_COUNTRY.filter((pc) => pc.product_id === p.id),
-    };
-  }).sort((a, b) => a.sort_order - b.sort_order);
-}
-
 export async function getAdminProducts(): Promise<AdminProduct[]> {
-  if (!isSupabaseConfigured()) return seedAdminProducts();
+  if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
@@ -61,9 +32,7 @@ export async function getAdminProducts(): Promise<AdminProduct[]> {
 export async function getAdminProduct(
   id: string
 ): Promise<AdminProduct | null> {
-  if (!isSupabaseConfigured()) {
-    return seedAdminProducts().find((p) => p.id === id) ?? null;
-  }
+  if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
@@ -75,9 +44,7 @@ export async function getAdminProduct(
 }
 
 export async function getAdminCategories(): Promise<Category[]> {
-  if (!isSupabaseConfigured()) {
-    return [...SEED_CATEGORIES].sort((a, b) => a.sort_order - b.sort_order);
-  }
+  if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
@@ -88,9 +55,7 @@ export async function getAdminCategories(): Promise<Category[]> {
 }
 
 export async function getAdminCountries(): Promise<Country[]> {
-  if (!isSupabaseConfigured()) {
-    return [...SEED_COUNTRIES].sort((a, b) => a.sort_order - b.sort_order);
-  }
+  if (!isSupabaseConfigured()) return [];
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("countries")
@@ -102,20 +67,21 @@ export async function getAdminCountries(): Promise<Country[]> {
   return (data ?? []) as Country[];
 }
 
-/** Empty per-country pricing scaffold for a new/edited product. */
-export function emptyPricing(
-  countries: Country[],
-  existing: ProductCountry[] = []
-): ProductCountry[] {
-  return countries.map((c) => {
-    const found = existing.find((p) => p.country_code === c.code);
-    return (
-      found ?? {
-        product_id: "",
-        country_code: c.code,
-        price: 0,
-        is_available: false,
-      }
-    );
-  });
+export interface AdminUser {
+  id: string;
+  email: string | null;
+  is_admin: boolean;
+  created_at: string;
+}
+
+/** All users with their admin flag. Uses the service role to see every row. */
+export async function getUsers(): Promise<AdminUser[]> {
+  if (!isSupabaseConfigured() || !hasServiceRole()) return [];
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("profiles")
+    .select("id, email, is_admin, created_at")
+    .order("created_at");
+  if (error) throw error;
+  return (data ?? []) as AdminUser[];
 }

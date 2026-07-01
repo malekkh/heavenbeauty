@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
+import { WhatsAppFab } from "@/components/site/whatsapp-fab";
 import type { SearchItem } from "@/components/site/search-dialog";
 import { SUPPORTED_COUNTRY_CODES, isSupportedCountry } from "@/lib/countries";
 import {
@@ -51,6 +52,7 @@ export default async function CountryLayout({
       />
       <main className="flex-1">{children}</main>
       <SiteFooter country={activeCountry} />
+      <WhatsAppFab number={activeCountry.whatsapp_number} />
     </>
   );
 }

@@ -1,24 +1,22 @@
 /**
- * Seed the Supabase database with Heaven Beauty's catalog.
+ * Bootstrap the `countries` table from the supported-countries config.
  *
  *   pnpm seed
  *
+ * This seeds ONLY the countries (currency + WhatsApp config for the 4
+ * supported regions) — there is no dummy product data. Products, categories,
+ * prices, images and availability are managed entirely from the admin
+ * dashboard and stored in Supabase.
+ *
  * Requires NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env.local.
- * Idempotent: re-running upserts the same fixed rows. Uses the service-role
- * key (bypasses RLS) so it can write everything in one pass.
+ * Idempotent: re-running upserts by country code.
  */
 import { config } from "dotenv";
 import { createClient } from "@supabase/supabase-js";
-import {
-  SEED_CATEGORIES,
-  SEED_COUNTRIES,
-  SEED_PRODUCTS,
-  SEED_PRODUCT_COUNTRY,
-  SEED_PRODUCT_IMAGES,
-} from "../lib/data/seed-data";
+import { COUNTRIES } from "../lib/countries";
 
 config({ path: ".env.local" });
-config(); // also fall back to .env
+config();
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -35,33 +33,25 @@ const supabase = createClient(url, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-async function upsert<T extends object>(
-  table: string,
-  rows: T[],
-  conflict: string
-) {
-  const { error } = await supabase
-    .from(table)
-    .upsert(rows, { onConflict: conflict });
-  if (error) {
-    throw new Error(`Failed to seed ${table}: ${error.message}`);
-  }
-  console.log(`  ✓ ${table}: ${rows.length} rows`);
-}
+const countryRows = COUNTRIES.map((c) => ({
+  code: c.code,
+  name: c.name,
+  currency_code: c.currency_code,
+  currency_symbol: c.currency_symbol,
+  whatsapp_number: c.whatsapp_number,
+  is_default: c.is_default,
+  is_active: c.is_active,
+  sort_order: c.sort_order,
+}));
 
 async function main() {
-  console.log("Seeding Heaven Beauty catalog…");
-  // Order matters for FKs: countries + categories → products → images/pricing.
-  await upsert("countries", SEED_COUNTRIES, "code");
-  await upsert("categories", SEED_CATEGORIES, "id");
-  await upsert("products", SEED_PRODUCTS, "id");
-  await upsert("product_images", SEED_PRODUCT_IMAGES, "id");
-  await upsert(
-    "product_country",
-    SEED_PRODUCT_COUNTRY,
-    "product_id,country_code"
-  );
-  console.log("✓ Seed complete.");
+  console.log("Seeding supported countries…");
+  const { error } = await supabase
+    .from("countries")
+    .upsert(countryRows, { onConflict: "code" });
+  if (error) throw new Error(`Failed to seed countries: ${error.message}`);
+  console.log(`  ✓ countries: ${countryRows.length} rows`);
+  console.log("✓ Done. Manage products and pricing from /admin.");
 }
 
 main().catch((err) => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, Tags, Globe } from "lucide-react";
+import { LayoutDashboard, Package, Tags, Globe, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/categories", label: "Categories", icon: Tags },
   { href: "/admin/countries", label: "Countries", icon: Globe },
+  { href: "/admin/users", label: "Users", icon: Users },
 ];
 
 export function AdminNav() {
