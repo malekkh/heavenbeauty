@@ -66,6 +66,7 @@ Copy [`.env.example`](.env.example) to `.env.local`:
 | `MOCK_COUNTRY` | Optional. Forces a country in local dev (geo is empty locally) |
 | `RESEND_API_KEY` | **Server only.** Order emails (owner + customer) via Resend |
 | `RESEND_FROM` | Optional. Verified sender for order emails |
+| `OWNER_EMAIL` | **Server only.** Fixed recipient for the owner order email |
 | `CALLMEBOT_API_KEY` | **Server only.** Owner WhatsApp alert via CallMeBot |
 
 All three checkout secrets are **server-only** — never prefix them with
@@ -88,7 +89,7 @@ Checkout is on-site (no accounts, no payments):
    `notify_status`:
    - **Owner WhatsApp** (CallMeBot) — a short text summary.
    - **Owner email** (Resend) — the full order for fulfilment, sent to the
-     country's **Owner order email** (set in the admin → Countries).
+     fixed `OWNER_EMAIL` address.
    - **Customer email** (Resend) — a branded confirmation.
 4. The success screen shows the order reference and a **Continue on WhatsApp**
    button (pre-filled to the country's number), then clears the cart.
@@ -96,7 +97,7 @@ Checkout is on-site (no accounts, no payments):
 > **Before production:** verify your sending domain in **Resend** (SPF + DKIM)
 > and set `RESEND_FROM` to an address on that domain, otherwise emails are
 > rejected. Register the owner's number with **CallMeBot** to get the API key.
-> Set each country's **Owner order email** and **WhatsApp number** in the admin.
+> Set `OWNER_EMAIL` and each country's **WhatsApp number** (in the admin).
 
 ---
 

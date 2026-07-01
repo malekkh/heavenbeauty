@@ -60,7 +60,7 @@ export async function getAdminCountries(): Promise<Country[]> {
   const { data, error } = await supabase
     .from("countries")
     .select(
-      "code, name, currency_code, currency_symbol, whatsapp_number, is_default, is_active, sort_order, owner_email"
+      "code, name, currency_code, currency_symbol, whatsapp_number, is_default, is_active, sort_order"
     )
     .order("sort_order");
   if (error) throw error;

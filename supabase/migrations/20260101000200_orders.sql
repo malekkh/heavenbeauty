@@ -1,15 +1,9 @@
 -- Heaven Beauty — on-site checkout orders.
--- Adds an `orders` table (written server-side with the service-role client)
--- and an `owner_email` column on `countries` for per-country fulfilment
--- notifications. Orders are private: no anon access at all; the authenticated
--- owner can read them from the admin. Inserts happen only via the service
--- role, which bypasses RLS.
-
--- ----------------------------------------------------------------------------
--- countries.owner_email — where the owner order email is sent for this country
--- ----------------------------------------------------------------------------
-alter table countries
-  add column if not exists owner_email text;
+-- Adds an `orders` table, written server-side with the service-role client.
+-- Orders are private: no anon access at all; the authenticated owner can read
+-- them from the admin. Inserts happen only via the service role, which
+-- bypasses RLS. The owner notification email goes to a single fixed
+-- OWNER_EMAIL env var, so no per-country column is needed.
 
 -- ----------------------------------------------------------------------------
 -- orders

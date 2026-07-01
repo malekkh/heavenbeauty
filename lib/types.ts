@@ -9,12 +9,6 @@ export interface Country {
   is_default: boolean;
   is_active: boolean;
   sort_order: number;
-  /**
-   * Fulfilment email for owner order notifications. Server/admin only — never
-   * selected by the public (anon) catalog queries, so it never reaches the
-   * storefront browser bundle.
-   */
-  owner_email?: string | null;
 }
 
 export interface Category {

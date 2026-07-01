@@ -41,14 +41,16 @@ export async function placeOrder(
   }
   const admin = createAdminClient();
 
-  // 2. Load the country (currency + where to notify). Server-only columns like
-  //    owner_email never leave the server.
+  // 2. Load the country (currency + WhatsApp number to notify).
   const { data: country, error: countryError } = await admin
     .from("countries")
-    .select("code, currency_code, whatsapp_number, owner_email")
+    .select("code, currency_code, whatsapp_number")
     .eq("code", data.country_code)
     .single();
   if (countryError || !country) {
+    // Logged server-side so the real cause is visible in the platform logs —
+    // production redacts thrown Server Action messages to a generic digest.
+    console.error("[checkout] country lookup failed:", countryError?.message);
     throw new Error("We couldn't find that country. Please try again.");
   }
 
@@ -97,6 +99,7 @@ export async function placeOrder(
     .select("id")
     .single();
   if (insertError || !order) {
+    console.error("[checkout] order insert failed:", insertError?.message);
     throw new Error("We couldn't save your order. Please try again.");
   }
   const orderId = order.id as string;
@@ -122,12 +125,14 @@ export async function placeOrder(
     });
   });
 
-  // 5b. Owner email (Resend) — full order for fulfilment.
-  notify.owner_email = country.owner_email
+  // 5b. Owner email (Resend) — full order for fulfilment. Single fixed
+  //     recipient for all countries, set via OWNER_EMAIL (server only).
+  const ownerEmail = process.env.OWNER_EMAIL?.trim();
+  notify.owner_email = ownerEmail
     ? await run(async () => {
         const { data: sent, error } = await getResend().emails.send({
           from: ORDER_FROM,
-          to: [country.owner_email as string],
+          to: [ownerEmail],
           subject: `New order ${ref} — ${data.customer_name} (${data.city})`,
           react: OrderOwnerEmail({
             orderId,
@@ -145,7 +150,7 @@ export async function placeOrder(
         if (error) throw new Error(error.message);
         return sent?.id;
       })
-    : { status: "skipped", error: "No owner_email set for country", at: now() };
+    : { status: "skipped", error: "OWNER_EMAIL is not set", at: now() };
 
   // 5c. Customer email (Resend) — branded confirmation.
   notify.customer_email = await run(async () => {
