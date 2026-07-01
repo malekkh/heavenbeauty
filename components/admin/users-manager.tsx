@@ -128,7 +128,7 @@ export function UsersManager({
         </p>
       </form>
 
-      {/* Users table */}
+      
       <div className="rounded-lg border border-border bg-surface">
         <Table>
           <TableHeader>
