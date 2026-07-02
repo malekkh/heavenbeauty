@@ -51,6 +51,9 @@ export function CheckoutForm({ country }: { country: Country }) {
   const subtotal = useCart(selectSubtotal);
   const clear = useCart((s) => s.clear);
 
+  // numeric columns can arrive as strings from the API — coerce once.
+  const delivery = Number(country.delivery_rate) || 0;
+
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>(
     {}
@@ -118,6 +121,7 @@ export function CheckoutForm({ country }: { country: Country }) {
       countryCode: country.code,
       whatsappNumber: country.whatsapp_number,
       currencySymbol: country.currency_symbol,
+      delivery,
       orderRef: ref,
       customer: {
         name: placed.form.customer_name,
@@ -252,10 +256,24 @@ export function CheckoutForm({ country }: { country: Country }) {
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+        <div className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Subtotal</span>
+            <span className="tabular-nums">
+              {formatMoney(subtotal, country.code)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-muted">Delivery</span>
+            <span className="tabular-nums">
+              {formatMoney(delivery, country.code)}
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
           <span className="text-muted">Total</span>
           <span className="font-display text-xl font-semibold">
-            {formatMoney(subtotal, country.code)}
+            {formatMoney(subtotal + delivery, country.code)}
           </span>
         </div>
       </aside>

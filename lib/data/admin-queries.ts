@@ -2,7 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured, hasServiceRole } from "@/lib/supabase/config";
-import type { AdminProduct, Category, Country } from "@/lib/types";
+import type { AdminProduct, Category, Country, Order } from "@/lib/types";
 
 /**
  * Admin reads — full rows (including inactive/unavailable), from Supabase only.
@@ -60,11 +60,25 @@ export async function getAdminCountries(): Promise<Country[]> {
   const { data, error } = await supabase
     .from("countries")
     .select(
-      "code, name, currency_code, currency_symbol, whatsapp_number, is_default, is_active, sort_order"
+      "code, name, currency_code, currency_symbol, whatsapp_number, delivery_rate, is_default, is_active, sort_order"
     )
     .order("sort_order");
   if (error) throw error;
   return (data ?? []) as Country[];
+}
+
+/** All orders, newest first. RLS grants the authenticated admin read access. */
+export async function getAdminOrders(): Promise<Order[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      "id, created_at, country_code, customer_name, customer_phone, customer_email, address, city, notes, items, subtotal, delivery, currency, status, notify_status"
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as Order[];
 }
 
 export interface AdminUser {

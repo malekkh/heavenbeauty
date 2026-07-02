@@ -44,7 +44,7 @@ export async function placeOrder(
   // 2. Load the country (currency + WhatsApp number to notify).
   const { data: country, error: countryError } = await admin
     .from("countries")
-    .select("code, currency_code, whatsapp_number")
+    .select("code, currency_code, whatsapp_number, delivery_rate")
     .eq("code", data.country_code)
     .single();
   if (countryError || !country) {
@@ -79,6 +79,8 @@ export async function placeOrder(
   const subtotal = round2(
     items.reduce((sum, i) => sum + i.price * i.qty, 0)
   );
+  const delivery = round2(Number(country.delivery_rate) || 0);
+  const total = round2(subtotal + delivery);
   const currency = country.currency_code as string;
 
   // 4. Insert the order — the one step allowed to fail the request.
@@ -94,6 +96,7 @@ export async function placeOrder(
       notes: data.notes ? data.notes : null,
       items,
       subtotal,
+      delivery,
       currency,
     })
     .select("id")
@@ -128,7 +131,9 @@ export async function placeOrder(
       `Items:`,
       ...itemLines,
       ``,
-      `Total: ${fmt(subtotal)}`,
+      `Subtotal: ${fmt(subtotal)}`,
+      `Delivery: ${fmt(delivery)}`,
+      `Total: ${fmt(total)}`,
       `Order id: ${orderId}`,
     ].join("\n");
     await sendOwnerWhatsApp({
@@ -157,6 +162,7 @@ export async function placeOrder(
             notes: data.notes,
             items,
             subtotal,
+            delivery,
           }),
         });
         if (error) throw new Error(error.message);
@@ -169,7 +175,7 @@ export async function placeOrder(
     const { data: sent, error } = await getResend().emails.send({
       from: ORDER_FROM,
       to: [data.customer_email],
-      subject: `Your Heaven Beauty order ${ref}`,
+      subject: `Heaven Beauty order ${ref}`,
       react: OrderCustomerEmail({
         orderId,
         countryCode: data.country_code,
@@ -179,6 +185,7 @@ export async function placeOrder(
         phone: data.customer_phone,
         items,
         subtotal,
+        delivery,
       }),
     });
     if (error) throw new Error(error.message);

@@ -19,6 +19,8 @@ interface WhatsAppArgs {
     address: string;
     city: string;
   };
+  /** Flat delivery charge to add to the items subtotal in the message. */
+  delivery?: number;
 }
 
 /**
@@ -38,6 +40,7 @@ export function buildWhatsAppUrl({
   currencySymbol,
   orderRef,
   customer,
+  delivery = 0,
 }: WhatsAppArgs): string {
   const fmt = (n: number) =>
     formatMoney(n, countryCode, currencySymbol ? { symbol: currencySymbol } : undefined);
@@ -45,7 +48,8 @@ export function buildWhatsAppUrl({
   const lines = items.map(
     (i) => `• ${i.name} × ${i.qty} — ${fmt(i.price * i.qty)}`
   );
-  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const total = subtotal + delivery;
 
   const message =
     orderRef && customer
@@ -54,6 +58,8 @@ export function buildWhatsAppUrl({
           "",
           ...lines,
           "",
+          `Subtotal: ${fmt(subtotal)}`,
+          `Delivery: ${fmt(delivery)}`,
           `Total: ${fmt(total)}`,
           "",
           "My details —",

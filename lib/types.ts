@@ -6,6 +6,8 @@ export interface Country {
   currency_code: string;
   currency_symbol: string;
   whatsapp_number: string;
+  /** Flat delivery charge in this country's currency, added at checkout. */
+  delivery_rate: number;
   is_default: boolean;
   is_active: boolean;
   sort_order: number;
@@ -112,6 +114,8 @@ export interface Order {
   notes: string | null;
   items: OrderItem[];
   subtotal: number;
+  /** Delivery charged on this order; final total = subtotal + delivery. */
+  delivery: number;
   currency: string;
   status: string;
   notify_status: NotifyStatus | null;

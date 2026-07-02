@@ -1,23 +1,33 @@
 import Link from "next/link";
-import { Package, Tags, Globe, Plus } from "lucide-react";
+import { Package, Tags, Globe, Plus, Receipt } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   getAdminCategories,
   getAdminCountries,
+  getAdminOrders,
   getAdminProducts,
 } from "@/lib/data/admin-queries";
 
 export default async function AdminDashboard() {
-  const [products, categories, countries] = await Promise.all([
+  const [products, categories, countries, orders] = await Promise.all([
     getAdminProducts(),
     getAdminCategories(),
     getAdminCountries(),
+    getAdminOrders(),
   ]);
 
   const activeProducts = products.filter((p) => p.is_active).length;
+  const newOrders = orders.filter((o) => o.status === "new").length;
 
   const stats = [
+    {
+      label: "Orders",
+      value: orders.length,
+      sub: `${newOrders} new`,
+      icon: Receipt,
+      href: "/admin/orders",
+    },
     {
       label: "Products",
       value: products.length,
@@ -43,19 +53,19 @@ export default async function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-3xl">Dashboard</h1>
           <p className="text-muted">Manage your catalog and storefront.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/admin/products/new">
             <Plus /> New product
           </Link>
         </Button>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.label} href={stat.href}>
             <Card className="transition-colors hover:border-brand/40">

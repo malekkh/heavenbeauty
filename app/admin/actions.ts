@@ -164,6 +164,7 @@ export interface CountryInput {
   currency_code: string;
   currency_symbol: string;
   whatsapp_number: string;
+  delivery_rate: number;
   is_active: boolean;
 }
 
@@ -176,11 +177,33 @@ export async function saveCountry(input: CountryInput) {
       currency_code: input.currency_code,
       currency_symbol: input.currency_symbol,
       whatsapp_number: input.whatsapp_number,
+      delivery_rate: Number(input.delivery_rate) || 0,
       is_active: input.is_active,
     })
     .eq("code", input.code);
   if (error) throw new Error(error.message);
   revalidateCatalog();
+}
+
+/* ------------------------------------------------------------------ *
+ * Orders
+ * ------------------------------------------------------------------ */
+
+const ORDER_STATUSES = ["new", "confirmed", "delivered", "cancelled"];
+
+/** Update an order's fulfilment status from the admin Orders page. */
+export async function updateOrderStatus(orderId: string, status: string) {
+  const { supabase } = await requireAdmin();
+  if (!ORDER_STATUSES.includes(status)) {
+    throw new Error("Invalid status.");
+  }
+  const { error } = await supabase
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin");
 }
 
 export async function signOut() {

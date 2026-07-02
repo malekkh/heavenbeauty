@@ -66,10 +66,8 @@ export function AdminShell({
             </button>
           </form>
         </div>
-        <div className="md:hidden">
-          <div className="border-b border-border bg-surface px-4 py-2">
-            <AdminNav />
-          </div>
+        <div className="border-b border-border bg-surface px-2 py-2 md:hidden">
+          <AdminNav orientation="horizontal" />
         </div>
 
         <main className="p-4 sm:p-8">{children}</main>

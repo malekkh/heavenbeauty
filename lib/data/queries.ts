@@ -26,7 +26,7 @@ const getActiveCountriesCached = unstable_cache(
     const { data, error } = await supabase
       .from("countries")
       .select(
-        "code, name, currency_code, currency_symbol, whatsapp_number, is_default, is_active, sort_order"
+        "code, name, currency_code, currency_symbol, whatsapp_number, delivery_rate, is_default, is_active, sort_order"
       )
       .eq("is_active", true)
       .order("sort_order");

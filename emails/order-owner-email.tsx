@@ -25,6 +25,7 @@ export interface OrderOwnerEmailProps {
   notes?: string | null;
   items: OrderItem[];
   subtotal: number;
+  delivery: number;
 }
 
 /**
@@ -42,9 +43,11 @@ export function OrderOwnerEmail({
   notes,
   items,
   subtotal,
+  delivery,
 }: OrderOwnerEmailProps) {
   const fmt = (n: number) => formatMoney(n, countryCode);
   const ref = orderId.slice(0, 8).toUpperCase();
+  const total = subtotal + delivery;
 
   return (
     <Html>
@@ -87,10 +90,26 @@ export function OrderOwnerEmail({
             <Hr style={hr} />
             <Row>
               <Column>
-                <Text style={totalLabel}>Subtotal</Text>
+                <Text style={line}>Subtotal</Text>
               </Column>
               <Column align="right">
-                <Text style={totalValue}>{fmt(subtotal)}</Text>
+                <Text style={line}>{fmt(subtotal)}</Text>
+              </Column>
+            </Row>
+            <Row>
+              <Column>
+                <Text style={line}>Delivery</Text>
+              </Column>
+              <Column align="right">
+                <Text style={line}>{fmt(delivery)}</Text>
+              </Column>
+            </Row>
+            <Row>
+              <Column>
+                <Text style={totalLabel}>Total</Text>
+              </Column>
+              <Column align="right">
+                <Text style={totalValue}>{fmt(total)}</Text>
               </Column>
             </Row>
           </Section>

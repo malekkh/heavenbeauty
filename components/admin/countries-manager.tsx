@@ -27,6 +27,7 @@ function CountryCard({ country }: { country: Country }) {
     currency_code: country.currency_code,
     currency_symbol: country.currency_symbol,
     whatsapp_number: country.whatsapp_number,
+    delivery_rate: country.delivery_rate,
     is_active: country.is_active,
   });
   const [pending, startTransition] = useTransition();
@@ -72,6 +73,20 @@ function CountryCard({ country }: { country: Country }) {
             value={form.currency_symbol}
             onChange={(e) => set("currency_symbol", e.target.value)}
           />
+        </Field>
+        <Field label="Delivery rate">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted">{form.currency_symbol}</span>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.delivery_rate}
+              onChange={(e) =>
+                set("delivery_rate", Number(e.target.value))
+              }
+            />
+          </div>
         </Field>
         <Field label="WhatsApp number">
           <Input
