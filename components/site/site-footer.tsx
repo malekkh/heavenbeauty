@@ -14,13 +14,19 @@ export function SiteFooter({ country }: { country: Country }) {
     <footer className="mt-16 border-t border-border bg-surface">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <Image
-            src="/logo.png"
-            alt={SITE.name}
-            width={180}
-            height={48}
-            className="h-10 w-auto"
-          />
+          <Link
+            href={base}
+            aria-label={`${SITE.name} home`}
+            className="inline-block"
+          >
+            <Image
+              src="/logo.png"
+              alt={SITE.name}
+              width={180}
+              height={48}
+              className="h-10 w-auto"
+            />
+          </Link>
           <p className="mt-3 max-w-xs text-sm text-muted">
             A touch of color designed to enhance your natural glow — soft,
             radiant, and effortlessly you.
