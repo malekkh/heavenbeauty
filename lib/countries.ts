@@ -39,7 +39,7 @@ export const COUNTRIES: CountryConfig[] = [
     decimals: 2,
     whatsapp_number: "96178835078",
     flag: "🇯🇴",
-    is_default: true,
+    is_default: false,
     is_active: true,
     sort_order: 1,
   },
@@ -53,7 +53,7 @@ export const COUNTRIES: CountryConfig[] = [
     // Placeholder — owner updates real LB WhatsApp number in admin.
     whatsapp_number: "96178835078",
     flag: "🇱🇧",
-    is_default: false,
+    is_default: true,
     is_active: true,
     sort_order: 2,
   },

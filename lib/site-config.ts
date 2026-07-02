@@ -4,7 +4,7 @@
  */
 export const SITE = {
   name: "Heaven Beauty",
-  email: "service@jor.myheavenbeauty.com",
+  email: "Service@myheavenbeauty.com",
   instagram: "https://instagram.com/myheavenbeauty",
   facebook: "https://facebook.com/myheavenbeauty",
   tagline: "Where Tint Meets Radiance",
