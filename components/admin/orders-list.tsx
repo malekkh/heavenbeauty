@@ -130,6 +130,9 @@ function OrderCard({ order }: { order: Order }) {
             <MapPin className="mt-0.5 size-3.5 shrink-0" />
             <span>
               {order.address}, {order.city}
+              {order.governorate ? `, ${order.governorate}` : ""}
+              {order.postal_code ? ` ${order.postal_code}` : ""} ·{" "}
+              {order.country_code.toUpperCase()}
             </span>
           </p>
           {order.notes ? (

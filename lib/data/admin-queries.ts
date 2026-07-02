@@ -60,11 +60,16 @@ export async function getAdminCountries(): Promise<Country[]> {
   const { data, error } = await supabase
     .from("countries")
     .select(
-      "code, name, currency_code, currency_symbol, whatsapp_number, delivery_rate, is_default, is_active, sort_order"
+      "code, name, currency_code, currency_symbol, whatsapp_number, delivery_rate, is_default, is_active, sort_order, governorates(id, country_code, name, delivery_rate, sort_order, is_active)"
     )
     .order("sort_order");
   if (error) throw error;
-  return (data ?? []) as Country[];
+  return ((data ?? []) as unknown as Country[]).map((c) => ({
+    ...c,
+    governorates: (c.governorates ?? [])
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order),
+  }));
 }
 
 /** All orders, newest first. RLS grants the authenticated admin read access. */
@@ -74,7 +79,7 @@ export async function getAdminOrders(): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, created_at, country_code, customer_name, customer_phone, customer_email, address, city, notes, items, subtotal, delivery, currency, status, notify_status"
+      "id, created_at, country_code, customer_name, customer_phone, customer_email, address, city, governorate, postal_code, notes, items, subtotal, delivery, currency, status, notify_status"
     )
     .order("created_at", { ascending: false });
   if (error) throw error;

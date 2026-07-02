@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isSupportedCountry } from "@/lib/countries";
-import { getCountryByCode } from "@/lib/data/queries";
+import { getCheckoutCountries } from "@/lib/data/queries";
 import { CheckoutForm } from "@/components/site/checkout-form";
 
 export const metadata: Metadata = {
@@ -17,8 +17,9 @@ export default async function CheckoutPage({
   const { country } = await params;
   if (!isSupportedCountry(country)) notFound();
 
-  const activeCountry = await getCountryByCode(country);
-  if (!activeCountry) notFound();
+  const countries = await getCheckoutCountries();
+  const initial = countries.find((c) => c.code === country.toLowerCase());
+  if (!initial) notFound();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:py-14">
@@ -28,7 +29,7 @@ export default async function CheckoutPage({
         with you on WhatsApp.
       </p>
       <div className="mt-8">
-        <CheckoutForm country={activeCountry} />
+        <CheckoutForm countries={countries} initialCountryCode={initial.code} />
       </div>
     </div>
   );

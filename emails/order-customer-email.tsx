@@ -20,6 +20,8 @@ export interface OrderCustomerEmailProps {
   customerName: string;
   address: string;
   city: string;
+  governorate?: string | null;
+  postalCode?: string | null;
   phone: string;
   items: OrderItem[];
   subtotal: number;
@@ -36,6 +38,8 @@ export function OrderCustomerEmail({
   customerName,
   address,
   city,
+  governorate,
+  postalCode,
   phone,
   items,
   subtotal,
@@ -105,8 +109,12 @@ export function OrderCustomerEmail({
           <Section style={card}>
             <Text style={sectionTitle}>Delivery details</Text>
             <Text style={line}>{customerName}</Text>
+            <Text style={line}>{address}</Text>
             <Text style={line}>
-              {address}, {city}
+              {city}
+              {governorate ? `, ${governorate}` : ""}
+              {postalCode ? ` ${postalCode}` : ""} ·{" "}
+              {countryCode.toUpperCase()}
             </Text>
             <Text style={line}>{phone}</Text>
           </Section>

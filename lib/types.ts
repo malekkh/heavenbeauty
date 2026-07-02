@@ -6,11 +6,26 @@ export interface Country {
   currency_code: string;
   currency_symbol: string;
   whatsapp_number: string;
-  /** Flat delivery charge in this country's currency, added at checkout. */
+  /**
+   * Flat delivery charge in this country's currency. Used when the country has
+   * NO governorates; otherwise the chosen governorate's rate applies.
+   */
   delivery_rate: number;
   is_default: boolean;
   is_active: boolean;
   sort_order: number;
+  /** Governorates/states for this country (empty when it has none). */
+  governorates?: Governorate[];
+}
+
+/** A governorate/state with its own delivery rate. */
+export interface Governorate {
+  id: string;
+  country_code: string;
+  name: string;
+  delivery_rate: number;
+  sort_order: number;
+  is_active: boolean;
 }
 
 export interface Category {
@@ -112,6 +127,9 @@ export interface Order {
   address: string;
   city: string;
   notes: string | null;
+  /** Selected governorate name, when the country has governorates. */
+  governorate: string | null;
+  postal_code: string | null;
   items: OrderItem[];
   subtotal: number;
   /** Delivery charged on this order; final total = subtotal + delivery. */

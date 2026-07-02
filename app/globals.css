@@ -7,16 +7,16 @@
   same family for buttons/links/badges; --accent-soft is a light logo-blue tint.
 */
 :root {
-  --background: #f5f3f1; /* cream — body background */
+  --background: #e6ecf4; /* soft blue — body background */
   --surface: #ffffff; /* cards */
-  --foreground: #111111; /* near-black text */
-  --ink: #000000; /* primary button fill (brand black) */
-  --ink-foreground: #f5f3f1; /* primary button text (cream) */
-  --muted: #6b6f78;
-  --border: #e2e3e7;
-  --brand: #4f7cc1; /* logo-family periwinkle — hover + accent */
+  --foreground: #6c93c4; /* logo-blue — default text */
+  --ink: #1f3a5f; /* deep navy — primary button fill + strong headings */
+  --ink-foreground: #ffffff; /* primary button text */
+  --muted: #5b6b82; /* slate-blue secondary text (readable on --background) */
+  --border: #d3dcec;
+  --brand: #3f6aad; /* deeper logo-blue for links/accents (better contrast) */
   --brand-foreground: #ffffff;
-  --accent-soft: #e8eef8; /* light logo-blue tint for soft surfaces */
+  --accent-soft: #dbe6f5; /* light logo-blue tint for soft surfaces */
   --whatsapp: #25d366;
   --radius: 0.9rem;
 }

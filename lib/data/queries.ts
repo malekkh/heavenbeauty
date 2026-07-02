@@ -44,6 +44,54 @@ export async function getCountryByCode(
   return countries.find((c) => c.code === code.toLowerCase()) ?? null;
 }
 
+/**
+ * Active countries, each with their active governorates — for the checkout
+ * country/governorate selectors. RLS returns only active governorates.
+ */
+export async function getCheckoutCountries(): Promise<Country[]> {
+  if (!isSupabaseConfigured()) return [];
+  return getCheckoutCountriesCached();
+}
+
+const getCheckoutCountriesCached = unstable_cache(
+  async (): Promise<Country[]> => {
+    const supabase = createPublicClient();
+    const withGov = await supabase
+      .from("countries")
+      .select(
+        "code, name, currency_code, currency_symbol, whatsapp_number, delivery_rate, is_default, is_active, sort_order, governorates(id, country_code, name, delivery_rate, sort_order, is_active)"
+      )
+      .eq("is_active", true)
+      .order("sort_order");
+
+    // Resilience for the deploy window before the governorates migration is
+    // applied: fall back to countries with no governorates rather than failing.
+    if (withGov.error) {
+      const base = await supabase
+        .from("countries")
+        .select(
+          "code, name, currency_code, currency_symbol, whatsapp_number, delivery_rate, is_default, is_active, sort_order"
+        )
+        .eq("is_active", true)
+        .order("sort_order");
+      if (base.error) throw base.error;
+      return ((base.data ?? []) as unknown as Country[]).map((c) => ({
+        ...c,
+        governorates: [],
+      }));
+    }
+
+    return ((withGov.data ?? []) as unknown as Country[]).map((c) => ({
+      ...c,
+      governorates: (c.governorates ?? [])
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order),
+    }));
+  },
+  ["checkout-countries"],
+  { tags: [TAGS.countries], revalidate: REVALIDATE_SECONDS }
+);
+
 /* ------------------------------------------------------------------ *
  * Categories
  * ------------------------------------------------------------------ */

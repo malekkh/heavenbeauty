@@ -87,7 +87,7 @@ export default async function HomePage({
       </div>
 
       {/* Glow statement */}
-      <section className="bg-foreground text-background">
+      <section className="bg-ink text-ink-foreground">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 lg:grid-cols-2">
           <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/15 bg-white/5">
             {glowImage ? (
@@ -110,15 +110,13 @@ export default async function HomePage({
       {pure ? (
         <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 lg:grid-cols-2">
           <div className="relative order-2 aspect-square overflow-hidden rounded-2xl border border-border bg-accent-soft lg:order-1">
-            {pure.images[0]?.url ? (
-              <Image
-                src={pure.images[0].url}
-                alt={pure.name}
-                fill
-                sizes="(min-width: 1024px) 32rem, 90vw"
-                className="object-cover"
-              />
-            ) : null}
+            <Image
+              src="/hero/heavenbeauty.lb_1760457592_3743312055324379350_65902285909.jpg"
+              alt={pure.name}
+              fill
+              sizes="(min-width: 1024px) 32rem, 90vw"
+              className="object-cover"
+            />
           </div>
           <div className="order-1 flex flex-col items-start gap-4 lg:order-2">
             <span className="text-sm font-medium uppercase tracking-[0.2em] text-brand">
@@ -142,7 +140,7 @@ export default async function HomePage({
       ) : null}
 
       {/* Our Story teaser */}
-      <section className="border-y border-border bg-surface">
+      <section className="bg-[#EFEDEA] text-ink">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 lg:grid-cols-2">
           <div className="flex flex-col items-start gap-4">
             <span className="text-sm font-medium uppercase tracking-[0.2em] text-brand">

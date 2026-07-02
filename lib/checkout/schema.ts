@@ -9,7 +9,12 @@ import { SUPPORTED_COUNTRY_CODES } from "@/lib/countries";
 
 const trimmed = z.string().trim();
 
-/** The details the customer types into the form. */
+/**
+ * The details the customer types into the form. Address order:
+ * Country → Governorate (if the country has any) → City → Address → Postal.
+ * `governorate` is a governorate id; whether it's required depends on the
+ * selected country and is enforced dynamically on the client and server.
+ */
 export const checkoutFormSchema = z.object({
   customer_name: trimmed.min(1, "Enter your name").max(120),
   customer_phone: trimmed
@@ -17,8 +22,14 @@ export const checkoutFormSchema = z.object({
     .max(30)
     .regex(/^[+\d][\d\s()-]*$/, "Enter a valid phone number"),
   customer_email: trimmed.email("Enter a valid email").max(160),
-  address: trimmed.min(1, "Enter your delivery address").max(300),
+  country_code: z
+    .string()
+    .toLowerCase()
+    .refine((c) => SUPPORTED_COUNTRY_CODES.includes(c), "Select your country"),
+  governorate: trimmed.max(120).optional().or(z.literal("")),
   city: trimmed.min(1, "Enter your city").max(120),
+  address: trimmed.min(1, "Enter your delivery address").max(300),
+  postal_code: trimmed.max(30).optional().or(z.literal("")),
   notes: trimmed.max(1000).optional().or(z.literal("")),
 });
 
@@ -37,10 +48,6 @@ export type OrderItemInput = z.infer<typeof orderItemSchema>;
 
 /** Full payload accepted by the `placeOrder` server action. */
 export const placeOrderSchema = checkoutFormSchema.extend({
-  country_code: z
-    .string()
-    .toLowerCase()
-    .refine((c) => SUPPORTED_COUNTRY_CODES.includes(c), "Unsupported country"),
   items: z.array(orderItemSchema).min(1, "Your cart is empty"),
 });
 

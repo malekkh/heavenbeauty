@@ -79,9 +79,32 @@ export async function placeOrder(
   const subtotal = round2(
     items.reduce((sum, i) => sum + i.price * i.qty, 0)
   );
-  const delivery = round2(Number(country.delivery_rate) || 0);
+
+  // 3b. Delivery: if the country has governorates, the rate comes from the
+  //     chosen governorate (required); otherwise the flat country rate applies.
+  const { data: govRows } = await admin
+    .from("governorates")
+    .select("id, name, delivery_rate")
+    .eq("country_code", data.country_code)
+    .eq("is_active", true);
+  const hasGovernorates = (govRows ?? []).length > 0;
+
+  let governorateName: string | null = null;
+  let delivery: number;
+  if (hasGovernorates) {
+    const gov = (govRows ?? []).find((g) => g.id === data.governorate);
+    if (!gov) {
+      throw new Error("Please select a valid governorate.");
+    }
+    governorateName = gov.name as string;
+    delivery = round2(Number(gov.delivery_rate) || 0);
+  } else {
+    delivery = round2(Number(country.delivery_rate) || 0);
+  }
+
   const total = round2(subtotal + delivery);
   const currency = country.currency_code as string;
+  const postalCode = data.postal_code ? data.postal_code : null;
 
   // 4. Insert the order — the one step allowed to fail the request.
   const { data: order, error: insertError } = await admin
@@ -93,6 +116,8 @@ export async function placeOrder(
       customer_email: data.customer_email,
       address: data.address,
       city: data.city,
+      governorate: governorateName,
+      postal_code: postalCode,
       notes: data.notes ? data.notes : null,
       items,
       subtotal,
@@ -125,7 +150,11 @@ export async function placeOrder(
       `${data.customer_name}`,
       `Phone: ${data.customer_phone}`,
       `Email: ${data.customer_email}`,
-      `Address: ${data.address}, ${data.city}`,
+      `Address: ${data.address}`,
+      `City: ${data.city}`,
+      ...(governorateName ? [`Governorate: ${governorateName}`] : []),
+      ...(postalCode ? [`Postal code: ${postalCode}`] : []),
+      `Country: ${data.country_code.toUpperCase()}`,
       ...(data.notes ? [`Notes: ${data.notes}`] : []),
       ``,
       `Items:`,
@@ -159,6 +188,8 @@ export async function placeOrder(
             customerEmail: data.customer_email,
             address: data.address,
             city: data.city,
+            governorate: governorateName,
+            postalCode,
             notes: data.notes,
             items,
             subtotal,
@@ -182,6 +213,8 @@ export async function placeOrder(
         customerName: data.customer_name,
         address: data.address,
         city: data.city,
+        governorate: governorateName,
+        postalCode,
         phone: data.customer_phone,
         items,
         subtotal,

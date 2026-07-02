@@ -18,6 +18,8 @@ interface WhatsAppArgs {
     phone: string;
     address: string;
     city: string;
+    governorate?: string;
+    postalCode?: string;
   };
   /** Flat delivery charge to add to the items subtotal in the message. */
   delivery?: number;
@@ -64,7 +66,10 @@ export function buildWhatsAppUrl({
           "",
           "My details —",
           `Name: ${customer.name}`,
-          `Delivery address: ${customer.address}, ${customer.city}`,
+          `Delivery address: ${customer.address}`,
+          `City: ${customer.city}${
+            customer.governorate ? `, ${customer.governorate}` : ""
+          }${customer.postalCode ? ` ${customer.postalCode}` : ""}`,
           `Phone: ${customer.phone}`,
         ].join("\n")
       : [

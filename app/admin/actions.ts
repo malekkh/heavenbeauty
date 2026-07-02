@@ -206,6 +206,44 @@ export async function updateOrderStatus(orderId: string, status: string) {
   revalidatePath("/admin");
 }
 
+/* ------------------------------------------------------------------ *
+ * Governorates (per-country, each with its own delivery rate)
+ * ------------------------------------------------------------------ */
+
+export interface GovernorateInput {
+  id?: string;
+  country_code: string;
+  name: string;
+  delivery_rate: number;
+  sort_order?: number;
+  is_active?: boolean;
+}
+
+export async function saveGovernorate(input: GovernorateInput) {
+  const { supabase } = await requireAdmin();
+  const name = input.name.trim();
+  if (!name) throw new Error("Governorate name is required.");
+  const { error } = await supabase.from("governorates").upsert({
+    ...(input.id ? { id: input.id } : {}),
+    country_code: input.country_code,
+    name,
+    delivery_rate: Number(input.delivery_rate) || 0,
+    sort_order: input.sort_order ?? 0,
+    is_active: input.is_active ?? true,
+  });
+  if (error) throw new Error(error.message);
+  revalidateCatalog();
+  revalidatePath("/admin/countries");
+}
+
+export async function deleteGovernorate(id: string) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("governorates").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidateCatalog();
+  revalidatePath("/admin/countries");
+}
+
 export async function signOut() {
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
